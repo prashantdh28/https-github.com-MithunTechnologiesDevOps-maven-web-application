@@ -1,42 +1,47 @@
-node
-{
+pipeline {
+    agent any
 
-  def mavenHome=tool name: "maven3.6.3"
-  
- stage('Checkout')
- {
- 	git branch: 'development', credentialsId: 'bed5a851-d84d-412e-87e7-bf9ce23c0e0e', url: 'https://github.com/MithunTechnologiesDevOps/maven-web-application.git'
- 
- }
- /*
- stage('Build')
- {
- sh  "${mavenHome}/bin/mvn clean package"
- }
- 
- stage('ExecuteSoanrQubeReport')
- {
- sh  "${mavenHome}/bin/mvn sonar:sonar"
- }
- 
- stage('UploadArtifactintoNexus')
- {
- sh  "${mavenHome}/bin/mvn deploy"
- }
- 
- stage('DeployAppintoTomcat')
- {
- sshagent(['cd93d61f-2d0f-4c60-8b33-34cf4fa888b0']) {
-  sh "scp -o StrictHostKeyChecking=no target/maven-web-application.war ec2-user@13.235.132.183:/opt/apache-tomcat-9.0.29/webapps/"
- }
- }
-*/
- stage('SendEmailNotification')
- {
- emailext body: '''Build is over..
+    stages {
+        stage('Git Clone') {
+            steps {
+                git credentialsId: 'aws-cred', url: 'https://github.com/prashantdh28/https-github.com-MithunTechnologiesDevOps-maven-web-application.git'
+            }
+        }
 
- Regards,
- Mithun Technologies,
- 9980923226.''', subject: 'Build is over', to: 'devopstrainingblr@gmail.com'
- }
+        stage('Maven Build') {
+            steps {
+                script {
+                    def mavenHome = tool name: "maven", type: "maven"
+                    def mavenCMD = "${mavenHome}/bin/mvn"
+                    sh "${mavenCMD} clean package"
+                }
+            }
+        }
+
+        stage('Store War to JFrog Artifactory') {
+            steps {
+                script {
+                    def server = Artifactory.server 'Artifactory'
+                    def uploadSpec = """{
+                        "files": [
+                            {
+                                "pattern": "target/*.war",
+                                "target": "java-web-app/com.mt/maven-web-application/0.0.1-SNAPSHOT/"
+
+                            }
+                        ]
+                    }"""
+                    server.upload spec: uploadSpec
+                }
+            }
+        }
+
+        stage('Deploy') {
+            steps {
+                sshagent(['tomcat-server']) {
+                    sh 'scp -o StrictHostKeyChecking=no target/maven-web-application.war ubuntu@3.109.200.151:/home/ubuntu/tomcat/webapps'
+                }
+            }
+        }
+    }
 }
