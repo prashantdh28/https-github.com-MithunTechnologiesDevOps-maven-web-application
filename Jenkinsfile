@@ -22,6 +22,22 @@ pipeline {
                         }
                     }
                 }
+                stage('Dev JFrog Upload') {
+                    steps {
+                        script {
+                            def server = Artifactory.server 'Artifactory'
+                            def uploadSpec = """{
+                                "files": [
+                                    {
+                                        "pattern": "target/*.war",
+                                        "target": "java-web-app/com.mt/maven-web-application/0.0.1-SNAPSHOT/"
+                                    }
+                                ]
+                            }"""
+                            server.upload spec: uploadSpec
+                        }
+                    }
+                }
                 stage('Dev Deploy') {
                     steps {
                         sshagent(['dev-tomcat-server']) {
@@ -46,6 +62,22 @@ pipeline {
                         }
                     }
                 }
+                stage('Master JFrog Upload') {
+                    steps {
+                        script {
+                            def server = Artifactory.server 'Artifactory'
+                            def uploadSpec = """{
+                                "files": [
+                                    {
+                                        "pattern": "target/*.war",
+                                        "target": "java-web-app/com.mt/maven-web-application/0.0.1-SNAPSHOT/"
+                                    }
+                                ]
+                            }"""
+                            server.upload spec: uploadSpec
+                        }
+                    }
+                }
                 stage('Master Deploy') {
                     steps {
                         sshagent(['master-tomcat-server']) {
@@ -67,6 +99,22 @@ pipeline {
                             def mavenHome = tool name: "maven", type: "maven"
                             def mavenCMD = "${mavenHome}/bin/mvn"
                             sh "${mavenCMD} clean package"
+                        }
+                    }
+                }
+                stage('Staging JFrog Upload') {
+                    steps {
+                        script {
+                            def server = Artifactory.server 'Artifactory'
+                            def uploadSpec = """{
+                                "files": [
+                                    {
+                                        "pattern": "target/*.war",
+                                        "target": "java-web-app/com.mt/maven-web-application/0.0.1-SNAPSHOT/"
+                                    }
+                                ]
+                            }"""
+                            server.upload spec: uploadSpec
                         }
                     }
                 }
