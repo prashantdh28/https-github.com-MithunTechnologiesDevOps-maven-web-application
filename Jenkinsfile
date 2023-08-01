@@ -40,7 +40,7 @@ pipeline {
                 }
                 stage('Dev Deploy') {
                     steps {
-                        sshagent(['dev-tomcat-server']) {
+                        sshagent(['tomcat-server']) {
                             sh 'scp -o StrictHostKeyChecking=no target/*.war ubuntu@13.233.183.44:/home/ubuntu/tomcat/webapps'
                         }
                     }
@@ -80,7 +80,7 @@ pipeline {
                 }
                 stage('Master Deploy') {
                     steps {
-                        sshagent(['master-tomcat-server']) {
+                        sshagent(['tomcat-server']) {
                             sh 'scp -o StrictHostKeyChecking=no target/*.war ubuntu@13.233.119.205:/home/ubuntu/tomcat/webapps'
                         }
                     }
@@ -120,7 +120,7 @@ pipeline {
                 }
                 stage('Staging Deploy') {
                     steps {
-                        sshagent(['staging-tomcat-server']) {
+                        sshagent(['tomcat-server']) {
                             sh 'scp -o StrictHostKeyChecking=no target/*.war ubuntu@3.111.219.15:/home/ubuntu/tomcat/webapps'
                         }
                     }
